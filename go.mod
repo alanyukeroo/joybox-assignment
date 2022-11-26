@@ -1,12 +1,16 @@
-module github/alanyukeroo/joybox-assignment
-
-replace github.com/alanyukeroo/joybox-assignment/rest => ./rest
+module github.com/alanyukeroo/joybox-assignment
 
 go 1.17
 
-require github.com/alanyukeroo/joybox-assignment/rest v0.0.0-00010101000000-000000000000
+require (
+	github.com/go-resty/resty/v2 v2.7.0
+	github.com/gorilla/mux v1.8.0
+	github.com/stretchr/testify v1.8.1
+)
 
 require (
-	github.com/go-resty/resty/v2 v2.7.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

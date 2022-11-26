@@ -3,7 +3,9 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
-	"github/alanyukeroo/joybox-assignment/model"
+
+	"github.com/alanyukeroo/joybox-assignment/model"
+
 	"net/http"
 	"strconv"
 	"time"
@@ -21,6 +23,7 @@ func SubmitAppointment(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if r.Method != "POST" {
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Method Not Allowed!"))
 		return
 	}
@@ -31,12 +34,14 @@ func SubmitAppointment(w http.ResponseWriter, r *http.Request) {
 	editionCount := r.URL.Query().Get("editionCount") //Book ID
 
 	if subject == "" || lenderName == "" {
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Please input subject & lender_name"))
 		return
 	}
 
 	date, err := time.Parse(pickUpFormat, pickUpDate)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Wrong Pickup Date!"))
 		fmt.Println(err)
 		return
@@ -44,6 +49,7 @@ func SubmitAppointment(w http.ResponseWriter, r *http.Request) {
 
 	edCount, err := strconv.ParseInt(editionCount, 10, 64)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Please input correct editionCount!"))
 		return
 	}
@@ -65,17 +71,20 @@ func SubmitAppointment(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	} else {
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("your book doesnt exist!"))
 		return
 	}
 
 	if lender.Message != "success" {
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(fmt.Sprintf("Cant find editionCount %s with subject %s", editionCount, subject)))
 		return
 	}
 
 	resp, err := json.Marshal(lender)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("something wrong!"))
 	}
 
@@ -88,6 +97,7 @@ func GetListBookBySubject(w http.ResponseWriter, r *http.Request) {
 		input model.Subject
 	)
 	if r.Method != "GET" {
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Method Not Allowed!"))
 		return
 	}
@@ -95,6 +105,11 @@ func GetListBookBySubject(w http.ResponseWriter, r *http.Request) {
 	client := resty.New()
 
 	subject := r.URL.Query().Get("subject")
+	if subject == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Please input subject"))
+		return
+	}
 
 	url := fmt.Sprintf("https://openlibrary.org/subjects/%s.json", subject)
 
@@ -103,17 +118,25 @@ func GetListBookBySubject(w http.ResponseWriter, r *http.Request) {
 		Get(url)
 
 	if err != nil {
-		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Something Wrong!"))
+		return
 	}
 
 	err = json.Unmarshal(resp.Body(), &input)
 	if err != nil {
-		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Something Wrong!"))
+		return
+
 	}
 
 	data, err := json.Marshal(input.Works)
 	if err != nil {
-		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Something Wrong!"))
+		return
+
 	}
 
 	w.Write(data)
